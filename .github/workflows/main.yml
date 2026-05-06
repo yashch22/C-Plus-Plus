@@ -1,0 +1,30 @@
+name: Assign Random Reviewer
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Assign random reviewer
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const reviewers = ["yashch22", "manjunath19991807"];
+
+            const author = context.payload.pull_request.user.login;
+            const eligible = reviewers.filter(r => r !== author);
+
+            if (eligible.length === 0) return;
+
+            const random =
+              eligible[Math.floor(Math.random() * eligible.length)];
+
+            await github.rest.pulls.requestReviewers({
+              ...context.repo,
+              pull_number: context.payload.pull_request.number,
+              reviewers: [random],
+            });
